@@ -2,8 +2,10 @@ import math
 import random
 import sys
 import time
+from typing import Any
 
 import pygame as pg
+from pygame.sprite import AbstractGroup
 
 
 WIDTH = 1600  # ゲームウィンドウの幅
@@ -227,6 +229,81 @@ class Enemy(pg.sprite.Sprite):
         self.rect.centery += self.vy
 
 
+class Nuisance(pg.sprite.Sprite):
+    """
+    お邪魔ボールに関するクラス
+    """
+
+    imgs = [pg.image.load(f"ProjExD_05/fig/nsc_b{i}.png") for i in range(1, 4)]
+
+    def __init__(self, life: int):
+        super().__init__()
+        self.image = random.choice(__class__.imgs)
+        self.imgs = [self.image, pg.transform.flip(self.image, 1, 0)]
+        self.image = self.imgs[0]
+        self.rect = self.image.get_rect()
+        self.rect.center = random.randint(0, WIDTH), 0
+        self.vy = +1
+        self.bound = random.randint(50, HEIGHT)  # 停止位置
+        self.state = "down"  # 降下状態or停止状態
+        self.life = life
+
+    def update(self):
+        """
+        お邪魔ボールを速度ベクトルself.vyに基づき移動（降下）させる
+        ランダムに決めた停止位置_boundまで降下したら，_stateを停止状態に変更する
+        経過時間lifeに応じて消滅し画像を切り替えることで動きのあるキャラクターのようにする
+        引数 screen：画面Surface
+        """
+        if self.rect.centery > self.bound:
+            self.vy = 0
+            self.state = "stop"
+        self.rect.centery += self.vy
+
+        self.life -= 1
+        self.image = self.imgs[self.life//10%2]
+        if self.life < 0:
+            self.kill()
+
+
+class Cure(pg.sprite.Sprite):
+    """
+    速度回復アイテムに関するクラス
+    """
+    def __init__(self, life: int):
+        super().__init__()
+        img = pg.image.load("ProjExd_05/fig/item_cure.png")
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect = WIDTH-120, HEIGHT-100
+        self.life = life
+    
+    def update(self):
+        self.life -= 1
+        if self.life < 0:
+            self.kill()
+
+class Meter:
+    """
+    こうかとんの速度を表示するクラス
+    """
+    def __init__(self):
+        self.font = pg.font.Font(None, 50)
+        self.color = (255, 0, 0)
+        self.meter = 10
+        self.image = self.font.render(f"Speed: {self.meter}", 0, self.color)
+        self.rect = self.image.get_rect()
+        self.rect.center = 300, HEIGHT-50
+
+    def meter_up(self, add):
+        self.meter += add
+
+    def update(self, screen: pg.Surface):
+        self.image = self.font.render(f"Speed: {self.meter}", 0, self.color)
+        screen.blit(self.image, self.rect)
+
+
+
 class Score:
     """
     打ち落とした爆弾，敵機の数をスコアとして表示するクラス
@@ -254,12 +331,15 @@ def main():
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("ex04/fig/pg_bg.jpg")
     score = Score()
+    meter = Meter()
 
     bird = Bird(3, (900, 400))
     bombs = pg.sprite.Group()
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    nscs = pg.sprite.Group()
+    cure = pg.sprite.Group()
 
     tmr = 0
     clock = pg.time.Clock()
@@ -270,7 +350,16 @@ def main():
                 return 0
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                 beams.add(Beam(bird))
+            if event.type == pg.KEYDOWN and event.key == pg.K_c and score.score>=50 and bird.speed < 10:
+                cure.add(Cure(20))
+                score.score_up(-50)
+                bird.speed += 2
+                meter.meter_up(2)
+                
         screen.blit(bg_img, [0, 0])
+
+        if tmr%250 == 0: # 250フレームに1回,お邪魔ボールを出現させる
+            nscs.add(Nuisance(750)) #15秒で消滅
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
             emys.add(Enemy())
@@ -289,9 +378,23 @@ def main():
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
             score.score_up(1)  # 1点アップ
 
+        if len(pg.sprite.spritecollide(bird, nscs, True)) != 0:
+            bird.speed -= 2 # スピードを2減速
+            meter.meter_up(-2)
+            if bird.speed == 0: # スピードが0の時にゲームオーバー
+                bird.change_img(8, screen) # こうかとん悲しみエフェクト
+                score.update(screen)
+                meter.update(screen)
+                pg.display.update()
+                time.sleep(2)
+                return
+                
+
+
         if len(pg.sprite.spritecollide(bird, bombs, True)) != 0:
             bird.change_img(8, screen) # こうかとん悲しみエフェクト
             score.update(screen)
+            meter.update(screen)
             pg.display.update()
             time.sleep(2)
             return
@@ -301,11 +404,16 @@ def main():
         beams.draw(screen)
         emys.update()
         emys.draw(screen)
+        nscs.update()
+        nscs.draw(screen)
+        cure.update()
+        cure.draw(screen)
         bombs.update()
         bombs.draw(screen)
         exps.update()
         exps.draw(screen)
         score.update(screen)
+        meter.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
