@@ -321,6 +321,7 @@ def main():
     tmr = 0
     flag = 0
     clock = pg.time.Clock()
+    
     while True:
         key_lst = pg.key.get_pressed()
         for event in pg.event.get():
@@ -334,7 +335,7 @@ def main():
             emys.add(Enemy())
                     
         if flag != 0:
-            if tmr%1200 == 0 and len(recover) < 2:  # 1200フレームに1回，回復アイテムを生成
+            if tmr%1500 == 0 and len(recover) < 2:  # 1500フレームに1回，回復アイテムを生成
                 tmr = 0 # タイマーを初期化
                 recover.update()
                 recover_item = RecoveryItem(bird, life, screen.get_rect())
@@ -361,6 +362,7 @@ def main():
             score.update(screen)
             life.lives_decrease() # 残機を減らす
             pg.display.update()
+            
             if life.lives <= 0: # 残機が０以下なら終了
                 return
             time.sleep(2)
