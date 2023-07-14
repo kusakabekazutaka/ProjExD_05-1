@@ -295,6 +295,7 @@ class RecoveryItem(pg.sprite.Sprite):
     def update(self): 
         if self.rect.colliderect(self.bird.rect):
             # こうかとん回復アイテムをとった場合
+            
             lives = self.lives_obj.lives  # Livesクラスの残機数を取得
             max_lives = self.lives_obj.max_lives  # Livesクラスの最大残機数を取得
             if lives < max_lives:
