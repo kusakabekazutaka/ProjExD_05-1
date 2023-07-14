@@ -273,9 +273,10 @@ class Lives:
 
 class RecoveryItem(pg.sprite.Sprite):
     """
-    残機を回復するアイテムに関するクラス
+    こうかとんの残機を回復するアイテムに関するクラス
     """
     def __init__(self, bird: Bird, lives_obj: Lives, screen_rect: pg.rect):
+        
         super().__init__()
         self.image = pg.image.load("ex05/fig/kaihuku.png")  # 回復アイテムの画像を読み込む
         self.rect = self.image.get_rect()
