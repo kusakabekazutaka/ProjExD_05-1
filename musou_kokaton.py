@@ -6,8 +6,8 @@ import time
 import pygame as pg
 
 
-WIDTH = 1000  # ゲームウィンドウの幅
-HEIGHT = 600  # ゲームウィンドウの高さ
+WIDTH = 1600  # ゲーム ウィンドウの幅
+HEIGHT = 900  # ゲームウィンドウの高さ
 
 
 def check_bound(obj: pg.Rect) -> tuple[bool, bool]:
@@ -253,10 +253,11 @@ class Lives:
     """
     こうかとんの残機表示するクラス
     """
-    def __init__(self, life_fig)->int:
+    def __init__(self, life_fig: int, max_lives: int):
         self.font = pg.font.Font(None, 50)
         self.color = (0, 0, 0)
         self.lives = life_fig
+        self.max_lives = max_lives
         
         self.lives_text = self.font.render(f"Lives: {self.lives}", 0, self.color)
         self.rect = self.lives_text.get_rect()
@@ -270,20 +271,55 @@ class Lives:
         screen.blit(self.lives_text, self.rect)
 
 
+class RecoveryItem(pg.sprite.Sprite):
+    """
+    残機を回復するアイテムに関するクラス
+    """
+    def __init__(self, bird: Bird, lives_obj: Lives, screen_rect: pg.rect):
+        super().__init__()
+        self.image = pg.image.load("ex05/fig/kaihuku.png")  # 回復アイテムの画像を読み込む
+        self.rect = self.image.get_rect()
+        self.rect.center = self.get_random_position(screen_rect)  # 画面内のランダムな位置に配置
+        self.bird = bird  # こうかとんのインスタンスへの参照
+        self.lives_obj = lives_obj  # Livesクラスのインスタンスへの参照
+        self.screen_rect = screen_rect  # 画面の矩形領域
+        
+        
+    def get_random_position(self, screen_rect: pg.rect):
+        # 画面内のランダムな位置を返す
+        x = random.randint(screen_rect.left, screen_rect.right)
+        y = random.randint(screen_rect.top, screen_rect.bottom)
+        return x, y
+    
+    def update(self): 
+        if self.rect.colliderect(self.bird.rect):
+            # こうかとん回復アイテムをとった場合
+            lives = self.lives_obj.lives  # Livesクラスの残機数を取得
+            max_lives = self.lives_obj.max_lives  # Livesクラスの最大残機数を取得
+            if lives < max_lives:
+                lives += 1  # 残機を1増やす
+                if lives > max_lives:
+                    lives = max_lives  # 残機が最大値を超えないように制限
+            self.lives_obj.lives = lives  # Livesクラスの残機数を更新
+            self.kill()  # アイテムを削除
+
+
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("ex04/fig/pg_bg.jpg")
     score = Score()
-    life = Lives(3)
+    life = Lives(3, 3)
 
     bird = Bird(3, (900, 400))
     bombs = pg.sprite.Group()
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    recover = pg.sprite.Group()
 
     tmr = 0
+    flag = 0
     clock = pg.time.Clock()
     while True:
         key_lst = pg.key.get_pressed()
@@ -296,7 +332,16 @@ def main():
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
             emys.add(Enemy())
-
+                    
+        if flag != 0:
+            if tmr%1200 == 0 and len(recover) < 2:  # 1200フレームに1回，回復アイテムを生成
+                tmr = 0 # タイマーを初期化
+                recover.update()
+                recover_item = RecoveryItem(bird, life, screen.get_rect())
+                recover.add(recover_item)
+        else:
+            flag += 1
+            
         for emy in emys:
             if emy.state == "stop" and tmr%emy.interval == 0:
                 # 敵機が停止状態に入ったら，intervalに応じて爆弾投下
@@ -310,6 +355,7 @@ def main():
         for bomb in pg.sprite.groupcollide(bombs, beams, True, True).keys():
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
             score.score_up(1)  # 1点アップ
+            
         if len(pg.sprite.spritecollide(bird, bombs, True)) != 0:
             bird.change_img(8, screen) # こうかとん悲しみエフェクト
             score.update(screen)
@@ -328,6 +374,8 @@ def main():
         bombs.draw(screen)
         exps.update()
         exps.draw(screen)
+        recover.update()
+        recover.draw(screen)
         score.update(screen)
         life.update(screen)
         pg.display.update()
