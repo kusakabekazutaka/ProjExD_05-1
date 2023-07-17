@@ -317,7 +317,6 @@ def main():
             life.update(screen)
             pg.display.update()
             time.sleep(2)
-            
             if life.lives <= 0: # 残機が０以下なら終了
                 return
 
