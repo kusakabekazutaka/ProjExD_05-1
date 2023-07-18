@@ -15,7 +15,7 @@ HEIGHT = 900  # ゲームウィンドウの高さ
 def check_bound(obj: pg.Rect) -> tuple[bool, bool]:
     """
     オブジェクトが画面内か画面外かを判定し，真理値タプルを返す
-    引数 obj：オブジェクト（爆弾，こうかとん，ビーム）SurfaceのRect
+    引数 obj：オブジェクト（爆弾，宇宙船，ビーム）SurfaceのRect
     戻り値：横方向，縦方向のはみ出し判定結果（画面内：True／画面外：False）
     """
     yoko, tate = True, True
@@ -30,7 +30,7 @@ def calc_orientation(org: pg.Rect, dst: pg.Rect) -> tuple[float, float]:
     """
     orgから見て，dstがどこにあるかを計算し，方向ベクトルをタプルで返す
     引数1 org：爆弾SurfaceのRect
-    引数2 dst：こうかとんSurfaceのRect
+    引数2 dst：宇宙船SurfaceのRect
     戻り値：orgから見たdstの方向ベクトルを表すタプル
     """
     x_diff, y_diff = dst.centerx-org.centerx, dst.centery-org.centery
@@ -51,9 +51,9 @@ class Bird(pg.sprite.Sprite):
 
     def __init__(self, num: int, xy: tuple[int, int]):
         """
-        こうかとん画像Surfaceを生成する
-        引数1 num：こうかとん画像ファイル名の番号
-        引数2 xy：こうかとん画像の位置座標タプル
+        宇宙船画像Surfaceを生成する
+        引数1 num：宇宙船画像ファイル名の番号
+        引数2 xy：宇宙船画像の位置座標タプル
         """
         super().__init__()
         img0 = pg.transform.rotozoom(pg.image.load(f"ex05/fig/{num}.png"), 0, 2.0)
@@ -81,8 +81,8 @@ class Bird(pg.sprite.Sprite):
 
     def change_img(self, num: int, screen: pg.Surface):
         """
-        こうかとん画像を切り替え，画面に転送する
-        引数1 num：こうかとん画像ファイル名の番号
+        宇宙船画像を切り替え，画面に転送する
+        引数1 num：宇宙船画像ファイル名の番号
         引数2 screen：画面Surface
         """
         self.image = pg.transform.rotozoom(pg.image.load(f"ex05/fig/{num}.png"), 0, 2.0)
@@ -90,7 +90,7 @@ class Bird(pg.sprite.Sprite):
 
     def update(self, key_lst: list[bool], screen: pg.Surface):
         """
-        押下キーに応じてこうかとんを移動させる
+        押下キーに応じて宇宙船を移動させる
         引数1 key_lst：押下キーの真理値リスト
         引数2 screen：画面Surface
         """
@@ -132,7 +132,7 @@ class  Atack(pg.sprite.Sprite):
         """
         爆弾Surfaceを生成する
         引数1 emy：爆弾を投下する敵機
-        引数2 bird：攻撃対象のこうかとん
+        引数2 bird：攻撃対象の宇宙船
         """
         saize = [0.25,0.05,0.15]
         super().__init__()
@@ -165,15 +165,15 @@ class BossBomb(pg.sprite.Sprite):
         """
         爆弾円Surfaceを生成する
         引数1 emy：爆弾を投下する敵機
-        引数2 bird：攻撃対象のこうかとん
+        引数2 bird：攻撃対象の宇宙船
         """
         super().__init__()
         size = 60  # 爆弾円の半径
         color = random.choice(__class__.colors)  # 爆弾円の色：クラス変数からランダム選択
         self.image = pg.Surface((120, 120))
-        self.state = boss
         pg.draw.circle(self.image, color, (size, size), size)
         self.image.set_colorkey((0, 0, 0))
+        self.state = boss
         self.rect = self.image.get_rect()
         # 爆弾を投下するemyから見た攻撃対象のbirdの方向を計算
         self.vx, self.vy = calc_orientation(boss.rect, bird.rect)  
@@ -197,7 +197,7 @@ class Beam(pg.sprite.Sprite):
     def __init__(self, bird: Bird):
         """
         ビーム画像Surfaceを生成する
-        引数 bird：ビームを放つこうかとん
+        引数 bird：ビームを放つ宇宙船
         """
         super().__init__()
         self.vx, self.vy = bird.get_direction()
@@ -358,7 +358,7 @@ class Cure(pg.sprite.Sprite):
 
 class Meter:
     """
-    こうかとんの速度を表示するクラス
+    宇宙船の速度を表示するクラス
     """
     def __init__(self):
         self.font = pg.font.Font(None, 50)
@@ -402,7 +402,7 @@ class Score:
 
 class Lives:
     """
-    こうかとんの残機表示するクラス
+    宇宙船の残機表示するクラス
     """
     def __init__(self, life_fig)->int:
         self.font = pg.font.Font(None, 50)
@@ -431,7 +431,7 @@ class ItemA(pg.sprite.Sprite):
         self.image = pg.image.load("ex05/fig/itemA.png")
         self.rect = self.image.get_rect()
         self.rect.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
-        self.timer = random.randint(10, 15) * 100  # 10秒から15秒後のランダムな時間
+        self.timer = random.randint(10000, 150000) * 100  # 10秒から15秒後のランダムな時間
         self.duration = 3 * 50  # 3秒
         self.active = True
 
@@ -483,7 +483,7 @@ class ItemB(pg.sprite.Sprite):
 
 #C0A22036/item
 def main():
-    pg.display.set_caption("真！こうかとん無双")
+    pg.display.set_caption("真！宇宙船無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("ex05/fig/pg_bg.jpg")
     shield_img = pg.image.load("ex05/fig/shield.png")
@@ -548,15 +548,15 @@ def main():
         for bossemy in boss:
             if bossemy.state == "stop" and tmr%bossemy.interval == 0:
                 # Bossが停止状態に入ったら，intervalに応じて爆弾投下
-                boss.add(BossBomb(bossemy, bird))
+                bomb.add(BossBomb(bossemy, bird))
 
         for bossemy in pg.sprite.groupcollide(boss, beams, False, True).keys():
             exps.add(Explosion(bossemy , 100))  # 爆発エフェクト
             if boss_life==0:
                 pg.sprite.groupcollide(boss, beams, True, True).keys()
                 score.score_up(100)  # 100点アップ
-                bird.change_img(6, screen)  # こうかとん喜びエフェクト
-                screen.blit(gameclear,[170,220])
+                bird.change_img(6, screen)  # 宇宙船爆発エフェクト
+                
                 score.update(screen)
                 pg.display.update()
                 time.sleep(2)
@@ -575,7 +575,7 @@ def main():
             bird.speed -= 2 # スピードを2減速
             meter.meter_up(-2)
             if bird.speed == 0: # スピードが0の時にゲームオーバー
-                bird.change_img(8, screen) # こうかとん悲しみエフェクト
+                bird.change_img(8, screen) # 宇宙船爆発エフェクト
                 score.update(screen)
                 meter.update(screen)
                 pg.display.update()
@@ -583,7 +583,7 @@ def main():
                 return
                 
         if len(pg.sprite.spritecollide(bird, atacks, True)) != 0:
-            bird.change_img(8, screen) # こうかとん悲しみエフェクト
+            bird.change_img(8, screen) # 宇宙船爆発エフェクト
             screen.blit(gameover,[170,220])
 
             score.update(screen)
