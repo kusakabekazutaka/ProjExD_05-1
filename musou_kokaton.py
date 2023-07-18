@@ -154,7 +154,7 @@ class  Atack(pg.sprite.Sprite):
         if check_bound(self.rect) != (True, True):
             self.kill()
 
-class BossBomb(pg.sprite.Sprite):
+class BossBomb(pg.sprite.Sprite):#C0A22056
   
     """
     爆弾に関するクラス
@@ -274,7 +274,7 @@ class Enemy(pg.sprite.Sprite):
             self.state = "stop"
         self.rect.centery += self.vy
 
-class BossEnemy(pg.sprite.Sprite):
+class BossEnemy(pg.sprite.Sprite):#C0A22056
     """
     Bossに関するクラス
     """
@@ -381,7 +381,7 @@ class Score:
     打ち落とした爆弾，敵機の数をスコアとして表示するクラス
     爆弾：1点
     敵機：10点
-    ボス：100点
+    ボス：100点(C0A22056)
     """
     def __init__(self):
         self.font = pg.font.Font(None, 50)
@@ -503,12 +503,12 @@ def main():
     nscs = pg.sprite.Group()
     cure = pg.sprite.Group()
 
-    boss = pg.sprite.Group()
-    gameover_font = pg.font.SysFont(None, 150)
-    gameover = gameover_font.render("GAME OVER", False, (0,0,255))
-    gameclear_font = pg.font.SysFont(None, 150)
-    gameclear = gameclear_font.render("GAME ClEAR!", False, (255,128,0))
-    boss_life=3
+    boss = pg.sprite.Group()#C0A22056
+    gameover_font = pg.font.SysFont(None, 150)#C0A22056
+    gameover = gameover_font.render("GAME OVER", False, (0,0,255))#C0A22056
+    gameclear_font = pg.font.SysFont(None, 150)#C0A22056
+    gameclear = gameclear_font.render("GAME ClEAR!", False, (255,128,0))#C0A22056
+    boss_life=3#C0A22056
     tmr = 0
     clock = pg.time.Clock()
     while True:
@@ -532,7 +532,7 @@ def main():
 
 
         if tmr < 500 and tmr%200 == 0:  # 1500フレーム以内かつ200フレームに1回，敵機を出現させる
-
+                                        #C0A22056
             emys.add(Enemy())
         elif tmr==500:
             boss.add(BossEnemy())
@@ -544,12 +544,12 @@ def main():
 
                 atacks.add(Atack(emy, bird))
         
-        for bossemy in boss:
+        for bossemy in boss:#C0A22056
             if bossemy.state == "stop" and tmr%bossemy.interval == 0:
                 # Bossが停止状態に入ったら，intervalに応じて爆弾投下
                 atacks.add(BossBomb(bossemy, bird))
 
-        for bossemy in pg.sprite.groupcollide(boss, beams, False, True).keys():
+        for bossemy in pg.sprite.groupcollide(boss, beams, False, True).keys():#C0A22056
             exps.add(Explosion(bossemy , 100))  # 爆発エフェクト
             if boss_life==0:
                 pg.sprite.groupcollide(boss, beams, True, True).keys()
@@ -579,8 +579,8 @@ def main():
                 time.sleep(2)
                 return
                 
-        if len(pg.sprite.spritecollide(bird, atacks, True)) != 0:
-            screen.blit(gameover,[260,250])
+        if len(pg.sprite.spritecollide(bird, atacks, True)) != 0:#C0A22056
+            screen.blit(gameover,[260,250])#C0A22056
 
             score.update(screen)
             life.lives_decrease() # 残機を減らす
@@ -644,8 +644,8 @@ def main():
         cure.update()
         cure.draw(screen)
 
-        boss.update()
-        boss.draw(screen)
+        boss.update()#C0A22056
+        boss.draw(screen)#C0A22056
 
         atacks.update()
         atacks .draw(screen)
