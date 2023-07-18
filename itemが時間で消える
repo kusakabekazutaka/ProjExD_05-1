@@ -38,9 +38,9 @@ def calc_orientation(org: pg.Rect, dst: pg.Rect) -> tuple[float, float]:
 
 class Bird(pg.sprite.Sprite):
     """
-    ゲームキャラクターに関するクラス
+    ゲームキャラクター（こうかとん）に関するクラス
     """
-    delta = {
+    delta = {  # 押下キーと移動量の辞書
         pg.K_UP: (0, -1),
         pg.K_DOWN: (0, +1),
         pg.K_LEFT: (-1, 0),
@@ -56,26 +56,23 @@ class Bird(pg.sprite.Sprite):
         super().__init__()
         img0 = pg.transform.rotozoom(pg.image.load(f"ex05/fig/{num}.png"), 0, 2.0)
         shield_img = pg.image.load("ex05/fig/shield.png")
-        img = pg.transform.flip(img0, True, False)
+        img = pg.transform.flip(img0, True, False)  # デフォルトのこうかとん
         self.imgs = {
-            (+1, 0): img,
-            (+1, -1): pg.transform.rotozoom(img, 45, 1.0),
-            (0, -1): pg.transform.rotozoom(img, 90, 1.0),
-            (-1, -1): pg.transform.rotozoom(img0, -45, 1.0),
-            (-1, 0): img0,
-            (-1, +1): pg.transform.rotozoom(img0, 45, 1.0),
-            (0, +1): pg.transform.rotozoom(img, -90, 1.0),
-            (+1, +1): pg.transform.rotozoom(img, -45, 1.0),
+            (+1, 0): img,  # 右
+            (+1, -1): pg.transform.rotozoom(img, 45, 1.0),  # 右上
+            (0, -1): pg.transform.rotozoom(img, 90, 1.0),  # 上
+            (-1, -1): pg.transform.rotozoom(img0, -45, 1.0),  # 左上
+            (-1, 0): img0,  # 左
+            (-1, +1): pg.transform.rotozoom(img0, 45, 1.0),  # 左下
+            (0, +1): pg.transform.rotozoom(img, -90, 1.0),  # 下
+            (+1, +1): pg.transform.rotozoom(img, -45, 1.0),  # 右下
         }
         self.dire = (+1, 0)
         self.image = self.imgs[self.dire]
         self.rect = self.image.get_rect()
         self.rect.center = xy
         self.speed = 10
-
-        self.shield = shield_img
-        self.shield_timer = 0  # shieldの発生時間を管理するタイマー
-        self.shield_rect = self.rect.inflate(100, 100).move(-50, -25)  # shieldの当たり判定領域を設定
+        self.shield = shield_img  # shield画像を追加
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -95,36 +92,26 @@ class Bird(pg.sprite.Sprite):
         sum_mv = [0, 0]
         for k, mv in __class__.delta.items():
             if key_lst[k]:
-                self.rect.move_ip(+self.speed * mv[0], +self.speed * mv[1])
+                self.rect.move_ip(+self.speed*mv[0], +self.speed*mv[1])
                 sum_mv[0] += mv[0]
                 sum_mv[1] += mv[1]
         if check_bound(self.rect) != (True, True):
             for k, mv in __class__.delta.items():
                 if key_lst[k]:
-                    self.rect.move_ip(-self.speed * mv[0], -self.speed * mv[1])
+                    self.rect.move_ip(-self.speed*mv[0], -self.speed*mv[1])
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
             self.dire = tuple(sum_mv)
             self.image = self.imgs[self.dire]
         screen.blit(self.image, self.rect)
-
-        # shieldの表示
-        if self.shield_timer > 0:
-            shield_rect = self.shield.get_rect()
-            shield_rect.center = self.rect.center
-            shield_rect.move_ip(5, -10)
-            screen.blit(self.shield, shield_rect)
-            self.shield_timer -= 1
-
         
-
+        shield_rect = self.shield.get_rect()
+        shield_rect.center = self.rect.center  # こうかとんの中心に配置
+        shield_rect.move_ip(5, -10)  # 左斜め上に20ずつ移動
+        screen.blit(self.shield, shield_rect)  # shield画像を表示
+    
     def get_direction(self) -> tuple[int, int]:
         return self.dire
-
-    def collides_with_shield(self, other_rect: pg.Rect) -> bool:
-        return self.shield_rect.colliderect(other_rect)
     
-    
-
 
 class Bomb(pg.sprite.Sprite):
     """
@@ -269,18 +256,20 @@ class Score:
         screen.blit(self.image, self.rect)
 
 
-class ItemA(pg.sprite.Sprite):
+class Item(pg.sprite.Sprite):
     """
-    ItemAに関するクラス
+    アイテムに関するクラス
     """
     def __init__(self):
         super().__init__()
-        self.image = pg.image.load("ex05/fig/itemA.png")
+        self.images = [pg.image.load("ex05/fig/itemA.png"), pg.image.load("ex05/fig/itemB.png")]
+        self.image = random.choice(self.images)
         self.rect = self.image.get_rect()
         self.rect.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
         self.timer = random.randint(10, 15) * 100  # 10秒から15秒後のランダムな時間
         self.duration = 3 * 50  # 3秒
         self.active = True
+        
 
     def update(self):
         """
@@ -298,35 +287,6 @@ class ItemA(pg.sprite.Sprite):
         self.active = True
         self.duration = 3 * 50
 
-
-class ItemB(pg.sprite.Sprite):
-    """
-    ItemBに関するクラス
-    """
-    def __init__(self):
-        super().__init__()
-        self.image = pg.image.load("ex05/fig/itemB.png")
-        self.rect = self.image.get_rect()
-        self.rect.center = random.randint(0, WIDTH), random.randint(0, HEIGHT)
-        self.timer = random.randint(10, 15) * 100  # 10秒から15秒後のランダムな時間
-        self.duration = 3 * 50  # 3秒
-        self.active = True
-
-    def update(self):
-        """
-        アイテムの状態を更新する
-        """
-        if self.active:
-            self.duration -= 1
-            if self.duration <= 0:
-                self.active = False
-
-    def activate(self):
-        """
-        アイテムをアクティブ状態にする
-        """
-        self.active = True
-        self.duration = 3 * 50
 
 def main():
     pg.display.set_caption("真！こうかとん無双")
@@ -341,8 +301,7 @@ def main():
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
     
-    itemsA = pg.sprite.Group()
-    itemsB = pg.sprite.Group()
+    items = pg.sprite.Group()
 
     tmr = 0
     clock = pg.time.Clock()
@@ -355,67 +314,41 @@ def main():
                 beams.add(Beam(bird))
         screen.blit(bg_img, [0, 0])
 
-        if tmr % 200 == 0:
+        if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
             emys.add(Enemy())
 
         for emy in emys:
-            if emy.state == "stop" and tmr % emy.interval == 0:
+            if emy.state == "stop" and tmr%emy.interval == 0:
+                # 敵機が停止状態に入ったら，intervalに応じて爆弾投下
                 bombs.add(Bomb(emy, bird))
 
         for emy in pg.sprite.groupcollide(emys, beams, True, True).keys():
-            exps.add(Explosion(emy, 100))
-            score.score_up(10)
+            exps.add(Explosion(emy, 100))  # 爆発エフェクト
+            score.score_up(10)  # 10点アップ
+            bird.change_img(6, screen)  # こうかとん喜びエフェクト
 
         for bomb in pg.sprite.groupcollide(bombs, beams, True, True).keys():
-            exps.add(Explosion(bomb, 50))
-            score.score_up(1)
+            exps.add(Explosion(bomb, 50))  # 爆発エフェクト
+            score.score_up(1)  # 1点アップ
 
         if len(pg.sprite.spritecollide(bird, bombs, True)) != 0:
-            bird.change_img(8, screen)
+            bird.change_img(8, screen) # こうかとん悲しみエフェクト
             score.update(screen)
             pg.display.update()
             time.sleep(2)
             return
+        #item関連
+        if tmr % 500 == 0:  # 500フレームに1回，アイテムを表示する
+            items.add(Item())
 
-        # itemAとの当たり判定
-        if len(pg.sprite.spritecollide(bird, itemsA, True)) != 0:
-            # itemAに触れた場合の処理
-            for item in itemsA:
-                item.kill()
+        for item in items:
+            item.timer -= 1
+            if item.timer <= 0:
+                item.activate()
 
-
-        # アイテムによるshield表示の制御
-        for item in itemsB:
-            if item.active and item.rect.colliderect(bird.rect):
-                bird.shield_timer = 50 * 50  # 5秒間shieldを表示する
-                item.active = False
-
-        # shieldとEnemyの当たり判定
-        for enemy in emys:
-            if bird.shield_timer > 0 and bird.collides_with_shield(enemy.rect):
-                exps.add(Explosion(enemy, 100))
-                enemy.kill()
-
-        # shieldとbombの当たり判定
-        for bomb in bombs:
-            if bird.shield_timer > 0 and bird.collides_with_shield(bomb.rect):
-                exps.add(Explosion(bomb, 50))
-                bomb.kill()
-
-        # アイテムの追加と更新
-        if tmr % 500 == 0:
-            if random.random() < 0.5:
-                itemsA.add(ItemA())
-            else:
-                itemsB.add(ItemB())
-
-        itemsA.update()
-        itemsA.draw(screen)
-        itemsA.remove([item for item in itemsA if not item.active])
-
-        itemsB.update()
-        itemsB.draw(screen)
-        itemsB.remove([item for item in itemsB if not item.active])
+        items.update()
+        items.draw(screen)
+        items.remove([item for item in items if not item.active])  # 非アクティブなアイテムを削除
 
         bird.update(key_lst, screen)
         beams.update()
@@ -429,9 +362,13 @@ def main():
         score.update(screen)
         pg.display.update()
         tmr += 1
-        clock.tick(50) #ゲーム内時間設定（５０）
+        clock.tick(50)
+
+
 if __name__ == "__main__":
     pg.init()
     main()
     pg.quit()
     sys.exit()
+
+

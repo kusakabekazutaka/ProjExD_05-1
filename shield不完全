@@ -38,7 +38,7 @@ def calc_orientation(org: pg.Rect, dst: pg.Rect) -> tuple[float, float]:
 
 class Bird(pg.sprite.Sprite):
     """
-    ゲームキャラクターに関するクラス
+    ゲームキャラクター（こうかとん）に関するクラス
     """
     delta = {
         pg.K_UP: (0, -1),
@@ -75,7 +75,7 @@ class Bird(pg.sprite.Sprite):
 
         self.shield = shield_img
         self.shield_timer = 0  # shieldの発生時間を管理するタイマー
-        self.shield_rect = self.rect.inflate(100, 100).move(-50, -25)  # shieldの当たり判定領域を設定
+        self.shield_rect = self.rect.inflate(100, 100)  # shieldの当たり判定領域を設定
 
     def change_img(self, num: int, screen: pg.Surface):
         """

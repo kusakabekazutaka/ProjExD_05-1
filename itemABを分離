@@ -38,7 +38,7 @@ def calc_orientation(org: pg.Rect, dst: pg.Rect) -> tuple[float, float]:
 
 class Bird(pg.sprite.Sprite):
     """
-    ゲームキャラクターに関するクラス
+    ゲームキャラクター（こうかとん）に関するクラス
     """
     delta = {
         pg.K_UP: (0, -1),
@@ -72,10 +72,8 @@ class Bird(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = xy
         self.speed = 10
-
         self.shield = shield_img
         self.shield_timer = 0  # shieldの発生時間を管理するタイマー
-        self.shield_rect = self.rect.inflate(100, 100).move(-50, -25)  # shieldの当たり判定領域を設定
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -115,15 +113,8 @@ class Bird(pg.sprite.Sprite):
             screen.blit(self.shield, shield_rect)
             self.shield_timer -= 1
 
-        
-
     def get_direction(self) -> tuple[int, int]:
         return self.dire
-
-    def collides_with_shield(self, other_rect: pg.Rect) -> bool:
-        return self.shield_rect.colliderect(other_rect)
-    
-    
 
 
 class Bomb(pg.sprite.Sprite):
@@ -340,7 +331,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
-    
+
     itemsA = pg.sprite.Group()
     itemsB = pg.sprite.Group()
 
@@ -377,30 +368,11 @@ def main():
             time.sleep(2)
             return
 
-        # itemAとの当たり判定
-        if len(pg.sprite.spritecollide(bird, itemsA, True)) != 0:
-            # itemAに触れた場合の処理
-            for item in itemsA:
-                item.kill()
-
-
         # アイテムによるshield表示の制御
         for item in itemsB:
             if item.active and item.rect.colliderect(bird.rect):
-                bird.shield_timer = 50 * 50  # 5秒間shieldを表示する
+                bird.shield_timer = 5 * 50  # 5秒間shieldを表示する
                 item.active = False
-
-        # shieldとEnemyの当たり判定
-        for enemy in emys:
-            if bird.shield_timer > 0 and bird.collides_with_shield(enemy.rect):
-                exps.add(Explosion(enemy, 100))
-                enemy.kill()
-
-        # shieldとbombの当たり判定
-        for bomb in bombs:
-            if bird.shield_timer > 0 and bird.collides_with_shield(bomb.rect):
-                exps.add(Explosion(bomb, 50))
-                bomb.kill()
 
         # アイテムの追加と更新
         if tmr % 500 == 0:
