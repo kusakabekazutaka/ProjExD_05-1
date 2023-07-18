@@ -171,6 +171,7 @@ class BossBomb(pg.sprite.Sprite):
         size = 60  # 爆弾円の半径
         color = random.choice(__class__.colors)  # 爆弾円の色：クラス変数からランダム選択
         self.image = pg.Surface((120, 120))
+        self.state = boss
         pg.draw.circle(self.image, color, (size, size), size)
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
@@ -306,7 +307,7 @@ class Nuisance(pg.sprite.Sprite):
     お邪魔ボールに関するクラス
     """
 
-    imgs = [pg.image.load(f"ProjExD_05/fig/nsc_b{i}.png") for i in range(1, 4)]
+    imgs = [pg.image.load(f"ex05/fig/nsc_b{i}.png") for i in range(1, 4)]
 
     def __init__(self, life: int):
         super().__init__()
@@ -344,7 +345,7 @@ class Cure(pg.sprite.Sprite):
     """
     def __init__(self, life: int):
         super().__init__()
-        img = pg.image.load("ProjExd_05/fig/item_cure.png")
+        img = pg.image.load("ex05/fig/item_cure.png")
         self.image = img
         self.rect = self.image.get_rect()
         self.recdct = WIDTH-120, HEIGHT-100
@@ -530,7 +531,6 @@ def main():
         if tmr%250 == 0: # 250フレームに1回,お邪魔ボールを出現させる
             nscs.add(Nuisance(750)) #15秒で消滅
 
-        if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
         if tmr < 500 and tmr%200 == 0:  # 1500フレーム以内かつ200フレームに1回，敵機を出現させる
 
             emys.add(Enemy())
@@ -543,12 +543,12 @@ def main():
                 # 敵機が停止状態に入ったら，intervalに応じて爆弾投下
 
                 atacks.add(Atack(emy, bird))
-                bombs.add(Bomb(emy, bird))
+                # atack.add(atack(emy, bird))
         
         for bossemy in boss:
             if bossemy.state == "stop" and tmr%bossemy.interval == 0:
                 # Bossが停止状態に入ったら，intervalに応じて爆弾投下
-                bombs.add(BossBomb(bossemy, bird))
+                boss.add(BossBomb(bossemy, bird))
 
         for bossemy in pg.sprite.groupcollide(boss, beams, False, True).keys():
             exps.add(Explosion(bossemy , 100))  # 爆発エフェクト
@@ -582,7 +582,7 @@ def main():
                 time.sleep(2)
                 return
                 
-        if len(pg.sprite.spritecollide(bird, bombs, True)) != 0:
+        if len(pg.sprite.spritecollide(bird, atacks, True)) != 0:
             bird.change_img(8, screen) # こうかとん悲しみエフェクト
             screen.blit(gameover,[170,220])
 
@@ -614,7 +614,7 @@ def main():
                 enemy.kill()
 
         # shieldとbombの当たり判定
-        for bomb in bombs:
+        for bomb in atacks:
             if bird.shield_timer > 0 and bird.collides_with_shield(bomb.rect):
                 exps.add(Explosion(bomb, 50))
                 bomb.kill()
@@ -651,8 +651,8 @@ def main():
         boss.update()
         boss.draw(screen)
 
-        bombs.update()
-        bombs.draw(screen)
+        atacks.update()
+        atacks.draw(screen)
         exps.update()
         exps.draw(screen)
         score.update(screen)
