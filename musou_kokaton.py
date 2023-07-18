@@ -6,8 +6,8 @@ import time
 import pygame as pg
 
 
-WIDTH = 1600  # ゲームウィンドウの幅
-HEIGHT = 900  # ゲームウィンドウの高さ
+WIDTH = 1000  # ゲームウィンドウの幅
+HEIGHT = 600  # ゲームウィンドウの高さ
 
 
 def check_bound(obj: pg.Rect) -> tuple[bool, bool]:
@@ -309,11 +309,33 @@ class Score:
         screen.blit(self.image, self.rect)
 
 
+class Lives:
+    """
+    こうかとんの残機表示するクラス
+    """
+    def __init__(self, life_fig)->int:
+        self.font = pg.font.Font(None, 50)
+        self.color = (0, 0, 0)
+        self.lives = life_fig
+        
+        self.lives_text = self.font.render(f"Lives: {self.lives}", 0, self.color)
+        self.rect = self.lives_text.get_rect()
+        self.rect.center = 300, HEIGHT-50
+        
+    def lives_decrease(self, dec=1)->int:
+        self.lives -= dec #残機を減らす
+    
+    def update(self, screen: pg.Surface):
+        self.lives_text = self.font.render(f"Lives: {self.lives}", 0, self.color)
+        screen.blit(self.lives_text, self.rect)
+
+
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("ex04/fig/pg_bg.jpg")
     score = Score()
+    life = Lives(3)
 
     bird = Bird(3, (900, 400))
     bombs = pg.sprite.Group()
@@ -373,14 +395,16 @@ def main():
         for bomb in pg.sprite.groupcollide(bombs, beams, True, True).keys():
             exps.add(Explosion(bomb, 50))  # 爆発エフェクト
             score.score_up(1)  # 1点アップ
-
         if len(pg.sprite.spritecollide(bird, bombs, True)) != 0:
             bird.change_img(8, screen) # こうかとん悲しみエフェクト
             screen.blit(gameover,[490,400])
             score.update(screen)
+            life.lives_decrease() # 残機を減らす
+            life.update(screen)
             pg.display.update()
             time.sleep(2)
-            return
+            if life.lives <= 0: # 残機が０以下なら終了
+                return
 
         bird.update(key_lst, screen)
         beams.update()
@@ -394,6 +418,7 @@ def main():
         exps.update()
         exps.draw(screen)
         score.update(screen)
+        life.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
