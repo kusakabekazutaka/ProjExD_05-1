@@ -275,7 +275,7 @@ class Cure(pg.sprite.Sprite):
         img = pg.image.load("ProjExd_05/fig/item_cure.png")
         self.image = img
         self.rect = self.image.get_rect()
-        self.rect = WIDTH-120, HEIGHT-100
+        self.recdct = WIDTH-120, HEIGHT-100
         self.life = life
     
     def update(self):
