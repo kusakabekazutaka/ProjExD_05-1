@@ -269,7 +269,7 @@ class BossEnemy(pg.sprite.Sprite):
         super().__init__()
         self.image=__class__.boss
         self.rect = self.image.get_rect()
-        self.rect.center = 800, 0
+        self.rect.center = WIDTH/2, 0
         self.vy=+5
         self.bound=70
         self.state="down"
@@ -380,7 +380,7 @@ def main():
                 pg.sprite.groupcollide(boss, beams, True, True).keys()
                 score.score_up(100)  # 100点アップ
                 bird.change_img(6, screen)  # こうかとん喜びエフェクト
-                screen.blit(gameclear,[490,400])
+                screen.blit(gameclear,[170,220])
                 score.update(screen)
                 pg.display.update()
                 time.sleep(2)
@@ -397,7 +397,7 @@ def main():
             score.score_up(1)  # 1点アップ
         if len(pg.sprite.spritecollide(bird, bombs, True)) != 0:
             bird.change_img(8, screen) # こうかとん悲しみエフェクト
-            screen.blit(gameover,[490,400])
+            screen.blit(gameover,[170,220])
             score.update(screen)
             life.lives_decrease() # 残機を減らす
             life.update(screen)
