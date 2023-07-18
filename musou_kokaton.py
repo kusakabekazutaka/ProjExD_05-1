@@ -108,24 +108,19 @@ class Bird(pg.sprite.Sprite):
         return self.dire
     
 
-class Bomb(pg.sprite.Sprite):
-    """
-    爆弾に関するクラス
-    """
-    colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)]
+class  Atack(pg.sprite.Sprite):
+    
 
     def __init__(self, emy: "Enemy", bird: Bird):
         """
-        爆弾円Surfaceを生成する
+        爆弾Surfaceを生成する
         引数1 emy：爆弾を投下する敵機
         引数2 bird：攻撃対象のこうかとん
         """
+        saize = [0.25,0.05,0.15]
         super().__init__()
-        rad = random.randint(10, 50)  # 爆弾円の半径：10以上50以下の乱数
-        color = random.choice(__class__.colors)  # 爆弾円の色：クラス変数からランダム選択
-        self.image = pg.Surface((2*rad, 2*rad))
-        pg.draw.circle(self.image, color, (rad, rad), rad)
-        self.image.set_colorkey((0, 0, 0))
+        img = pg.image.load("ex05/fig/bomb.png")
+        self.image = pg.transform.rotozoom(img,1,random.choice(saize))
         self.rect = self.image.get_rect()
         # 爆弾を投下するemyから見た攻撃対象のbirdの方向を計算
         self.vx, self.vy = calc_orientation(emy.rect, bird.rect)  
@@ -210,10 +205,10 @@ class Explosion(pg.sprite.Sprite):
     """
     爆発に関するクラス
     """
-    def __init__(self, obj: "Bomb|Enemy", life: int):
+    def __init__(self, obj: "Atack|Enemy", life: int):
         """
         爆弾が爆発するエフェクトを生成する
-        引数1 obj：爆発するBombまたは敵機インスタンス
+        引数1 obj：爆発するAtackまたは敵機インスタンス
         引数2 life：爆発時間
         """
         super().__init__()
@@ -417,7 +412,7 @@ def main():
     life = Lives(3)
 
     bird = Bird(3, (900, 400))
-    bombs = pg.sprite.Group()
+    atacks = pg.sprite.Group()
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
@@ -461,6 +456,8 @@ def main():
         for emy in emys:
             if emy.state == "stop" and tmr%emy.interval == 0:
                 # 敵機が停止状態に入ったら，intervalに応じて爆弾投下
+
+                atacks.add(Atack(emy, bird))
                 bombs.add(Bomb(emy, bird))
         
         for bossemy in boss:
@@ -480,14 +477,14 @@ def main():
                 time.sleep(2)
                 return
             boss_life-=1
-        
+
         for emy in pg.sprite.groupcollide(emys, beams, True, True).keys():
             exps.add(Explosion(emy, 100))  # 爆発エフェクト
             score.score_up(10)  # 10点アップ
             bird.change_img(6, screen)  # こうかとん喜びエフェクト
 
-        for bomb in pg.sprite.groupcollide(bombs, beams, True, True).keys():
-            exps.add(Explosion(bomb, 50))  # 爆発エフェクト
+        for atack in pg.sprite.groupcollide(atacks, beams, True, True).keys():
+            exps.add(Explosion(atack, 50))  # 爆発エフェクト
             score.score_up(1)  # 1点アップ
 
         if len(pg.sprite.spritecollide(bird, nscs, True)) != 0:
@@ -517,6 +514,10 @@ def main():
         beams.draw(screen)
         emys.update()
         emys.draw(screen)
+
+        atacks.update()
+        atacks.draw(screen)
+
         nscs.update()
         nscs.draw(screen)
         cure.update()
