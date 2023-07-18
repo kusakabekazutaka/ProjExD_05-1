@@ -38,7 +38,7 @@ def calc_orientation(org: pg.Rect, dst: pg.Rect) -> tuple[float, float]:
 
 class Bird(pg.sprite.Sprite):
     """
-    ゲームキャラクターに関するクラス
+    ゲームキャラクター（こうかとん）に関するクラス
     """
     delta = {
         pg.K_UP: (0, -1),
@@ -75,7 +75,7 @@ class Bird(pg.sprite.Sprite):
 
         self.shield = shield_img
         self.shield_timer = 0  # shieldの発生時間を管理するタイマー
-        self.shield_rect = self.rect.inflate(120, 120).move(-25, -25)  # shieldの当たり判定領域を設定
+        self.shield_rect = self.rect.inflate(100, 100)  # shieldの当たり判定領域を設定
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -269,28 +269,6 @@ class Score:
         screen.blit(self.image, self.rect)
 
 
-class Lives:
-    """
-    こうかとんの残機表示するクラス
-    """
-    def __init__(self, life_fig)->int:
-        self.font = pg.font.Font(None, 50)
-        self.color = (0, 0, 0)
-        self.lives = life_fig
-        
-        self.lives_text = self.font.render(f"Lives: {self.lives}", 0, self.color)
-        self.rect = self.lives_text.get_rect()
-        self.rect.center = 300, HEIGHT-50
-        
-    def lives_decrease(self, dec=1)->int:
-        self.lives -= dec #残機を減らす
-    
-    def update(self, screen: pg.Surface):
-        self.lives_text = self.font.render(f"Lives: {self.lives}", 0, self.color)
-        screen.blit(self.lives_text, self.rect)
-
-
-
 class ItemA(pg.sprite.Sprite):
     """
     ItemAに関するクラス
@@ -350,14 +328,12 @@ class ItemB(pg.sprite.Sprite):
         self.active = True
         self.duration = 3 * 50
 
-#C0A22036/item
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
     bg_img = pg.image.load("ex05/fig/pg_bg.jpg")
     shield_img = pg.image.load("ex05/fig/shield.png")
     score = Score()
-    life = Lives(3)
 
     bird = Bird(3, (900, 400))
     bombs = pg.sprite.Group()
@@ -391,23 +367,15 @@ def main():
             score.score_up(10)
 
         for bomb in pg.sprite.groupcollide(bombs, beams, True, True).keys():
-
-            exps.add(Explosion(bomb, 50))  # 爆発エフェクト
-            score.score_up(1)  # 1点アップ
-
             exps.add(Explosion(bomb, 50))
             score.score_up(1)
-
 
         if len(pg.sprite.spritecollide(bird, bombs, True)) != 0:
             bird.change_img(8, screen)
             score.update(screen)
-            life.lives_decrease() # 残機を減らす
-            life.update(screen)
             pg.display.update()
             time.sleep(2)
-            if life.lives <= 0: # 残機が０以下なら終了
-                return
+            return
 
         # itemAとの当たり判定
         if len(pg.sprite.spritecollide(bird, itemsA, True)) != 0:
@@ -459,7 +427,6 @@ def main():
         exps.update()
         exps.draw(screen)
         score.update(screen)
-        life.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50) #ゲーム内時間設定（５０）
