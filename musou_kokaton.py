@@ -171,6 +171,7 @@ class BossBomb(pg.sprite.Sprite):
         size = 60  # 爆弾円の半径
         color = random.choice(__class__.colors)  # 爆弾円の色：クラス変数からランダム選択
         self.image = pg.Surface((120, 120))
+        self.state = boss
         pg.draw.circle(self.image, color, (size, size), size)
         self.image.set_colorkey((0, 0, 0))
         self.rect = self.image.get_rect()
@@ -344,7 +345,7 @@ class Cure(pg.sprite.Sprite):
     """
     def __init__(self, life: int):
         super().__init__()
-        img = pg.image.load("ProjExd_05/fig/item_cure.png")
+        img = pg.image.load("ex05/fig/item_cure.png")
         self.image = img
         self.rect = self.image.get_rect()
         self.recdct = WIDTH-120, HEIGHT-100
@@ -530,7 +531,6 @@ def main():
         if tmr%250 == 0: # 250フレームに1回,お邪魔ボールを出現させる
             nscs.add(Nuisance(750)) #15秒で消滅
 
-
         if tmr < 500 and tmr%200 == 0:  # 1500フレーム以内かつ200フレームに1回，敵機を出現させる
 
             emys.add(Enemy())
@@ -547,6 +547,7 @@ def main():
         for bossemy in boss:
             if bossemy.state == "stop" and tmr%bossemy.interval == 0:
                 # Bossが停止状態に入ったら，intervalに応じて爆弾投下
+                
                 atacks.add(BossBomb(bossemy, bird))
 
         for bossemy in pg.sprite.groupcollide(boss, beams, False, True).keys():
@@ -580,8 +581,8 @@ def main():
                 return
                 
         if len(pg.sprite.spritecollide(bird, atacks, True)) != 0:
-            screen.blit(gameover,[260,250])
 
+            screen.blit(gameover,[260,250])
             score.update(screen)
             life.lives_decrease() # 残機を減らす
             life.update(screen)
@@ -648,7 +649,9 @@ def main():
         boss.draw(screen)
 
         atacks.update()
+
         atacks .draw(screen)
+
         exps.update()
         exps.draw(screen)
         score.update(screen)
